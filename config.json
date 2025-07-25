@@ -14,6 +14,10 @@
       "description": "Open Guancha International News in new tab",
       "message": "Redirecting to Guancha International News..."
     },
+    "sound": {
+      "type": "function",
+      "description": "Toggle typewriter sound effects"
+    },
     "hack": {
       "type": "redirect",
       "url": "https://news.ycombinator.com/",

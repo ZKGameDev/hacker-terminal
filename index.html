@@ -244,6 +244,90 @@
         .cursor.no-focus {
             display: none;
         }
+        
+        /* 开机动画样式 */
+        .boot-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+        }
+        
+        .boot-logo {
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ff00;
+            margin-bottom: 30px;
+            animation: bootGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .boot-text {
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .boot-progress {
+            width: 400px;
+            height: 4px;
+            background: #333;
+            border: 1px solid #00ff00;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .boot-progress-bar {
+            height: 100%;
+            background: #00ff00;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        .boot-status {
+            font-size: 12px;
+            color: #00aa00;
+            margin-top: 10px;
+        }
+        
+        .boot-status.waiting {
+            animation: pulse 1.5s infinite;
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes bootGlow {
+            from { text-shadow: 0 0 20px #00ff00; }
+            to { text-shadow: 0 0 30px #00ff00, 0 0 40px #00ff00; }
+        }
+        
+        .boot-fade-out {
+            animation: fadeOut 1s ease-out forwards;
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
 
         .status-bar {
             position: fixed;
@@ -375,6 +459,19 @@
     </style>
 </head>
 <body>
+    <!-- 开机动画 -->
+    <div class="boot-animation" id="bootAnimation">
+        <div class="boot-logo">ZHANGKAI.LIFE</div>
+        <div class="boot-text">
+            <div>Hacker Terminal v2.0</div>
+            <div>Initializing system components...</div>
+        </div>
+        <div class="boot-progress">
+            <div class="boot-progress-bar" id="bootProgress"></div>
+        </div>
+        <div class="boot-status" id="bootStatus">Starting up...</div>
+    </div>
+    
     <div class="hacker-grid"></div>
     <canvas id="matrix-bg"></canvas>
     
@@ -499,6 +596,11 @@
                                 });
                                 
                                 return helpText;
+                            };
+                        } else if (cmd === 'sound') {
+                            commands[cmd] = () => {
+                                const isEnabled = typewriterSound.toggleSound();
+                                return `Typewriter sound ${isEnabled ? 'enabled' : 'disabled'}`;
                             };
                         }
                     } else if (cmdData.type === 'redirect') {
@@ -639,7 +741,13 @@
         });
 
         commandInput.addEventListener('keypress', function(e) {
+            // 播放按键音效
+            typewriterSound.playKeySound();
+            
             if (e.key === 'Enter') {
+                // 播放回车音效
+                typewriterSound.playEnterSound();
+                
                 const command = this.value.trim().toLowerCase();
                 this.value = '';
 
@@ -698,52 +806,7 @@
         setInterval(updateTime, 10); // 每10毫秒更新一次，实现毫秒级精度
         updateTime();
 
-        // 配置变量
-        const DISPLAY_CONFIG = {
-            initialDelay: 200,        // 开始显示消息前的初始延迟
-            messageInterval: 150,     // 消息之间的显示间隔（更快）
-            stageDelay: 200,          // 阶段之间的延迟
-            commandLineDelay: 200     // 显示命令行前的延迟
-        };
 
-        // Initial system startup messages
-        const initialMessages = [
-            { text: '[*] System initialized successfully...', type: 'success' },
-            { text: '[*] Loading security protocols...', type: 'info' },
-            { text: '[*] Access granted to mainframe', type: 'success' },
-            { text: '[!] Warning: Unauthorized access detected', type: 'warning' },
-            { text: '[ERROR] Firewall bypass required', type: 'error' },
-            { text: '[*] Firewall bypassed successfully', type: 'success' },
-            { text: '[*] Connected to target system', type: 'info' },
-            { text: '[*] Ready for commands', type: 'success' }
-        ];
-
-        // Additional system messages
-        const systemMessages = [
-            '[*] Monitoring network traffic...',
-            '[*] Updating security protocols...',
-            '[*] Scanning for vulnerabilities...',
-            '[*] Encrypting data transmission...',
-            '[*] Bypassing firewall...',
-            '[*] Accessing secure database...'
-        ];
-
-        // Display initial system messages on startup
-        setTimeout(() => {
-            // Show initial messages sequentially
-            showMessagesSequentially(initialMessages, 0, () => {
-                // After initial messages, show additional system messages
-                setTimeout(() => {
-                    showMessagesSequentially(systemMessages, 0, () => {
-                        // After all messages, show command line
-                        setTimeout(() => {
-                            document.getElementById('commandLine').style.display = 'flex';
-                            document.getElementById('commandInput').focus();
-                        }, DISPLAY_CONFIG.commandLineDelay);
-                    });
-                }, DISPLAY_CONFIG.stageDelay);
-            });
-        }, DISPLAY_CONFIG.initialDelay);
 
         // Function to show messages sequentially
         function showMessagesSequentially(messages, index, callback) {
@@ -769,6 +832,15 @@
             const output = document.createElement('div');
             output.className = `output ${type}`;
             terminalContent.insertBefore(output, terminalContent.lastElementChild);
+            
+            // 播放系统消息音效 - 仅在用户交互后
+            if (typewriterSound && typewriterSound.isEnabled && 
+                typewriterSound.audioContext && typewriterSound.audioContext.state === 'running') {
+                // 立即播放音效
+                setTimeout(() => {
+                    typewriterSound.playKeySound();
+                }, 0);
+            }
             
             // Typewriter effect for text with ellipsis
             if (text.includes('...')) {
@@ -1143,6 +1215,160 @@
         // Get IP address on page load
         getUserIP();
 
+        // 打字机音效系统
+        class TypewriterSound {
+            constructor() {
+                this.audioContext = null;
+                this.isEnabled = true;
+                this.volume = 0.1;
+                this.isInitialized = false;
+                this.initAudioContext();
+            }
+            
+            initAudioContext() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    // 预创建一些音频节点以减少延迟
+                    this.preloadAudioNodes();
+                } catch (e) {
+                    console.log('Audio context not supported');
+                    this.isEnabled = false;
+                }
+            }
+            
+            preloadAudioNodes() {
+                // 预创建音频节点以减少首次播放的延迟
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.001);
+                    this.isInitialized = true;
+                } catch (e) {
+                    console.log('Audio preload failed:', e);
+                }
+            }
+            
+            playKeySound() {
+                if (!this.isEnabled || !this.audioContext) return;
+                
+                // 确保音频上下文已恢复（如果被暂停）
+                if (this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                // 老式电脑音效参数 - 更长更经典
+                const now = this.audioContext.currentTime;
+                // 使用更低的频率，更像老式电脑
+                oscillator.frequency.setValueAtTime(600 + Math.random() * 200, now);
+                oscillator.type = 'triangle'; // 使用三角波，更柔和
+                
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(this.volume * 0.8, now + 0.02); // 更慢的上升时间
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15); // 更长的持续时间
+                
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
+            }
+            
+            playEnterSound() {
+                if (!this.isEnabled || !this.audioContext) {
+                    console.log('Enter sound disabled or no audio context');
+                    return;
+                }
+                
+                try {
+                    // 确保音频上下文已恢复（如果被暂停）
+                    if (this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    // 老式电脑确认音效参数
+                    const now = this.audioContext.currentTime;
+                    oscillator.frequency.setValueAtTime(300, now);
+                    oscillator.type = 'triangle'; // 使用三角波，更柔和
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(this.volume * 1.5, now + 0.03); // 更慢的上升时间
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.25); // 更长的持续时间
+                    
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.25);
+                    
+                    console.log('Enter sound played successfully');
+                } catch (error) {
+                    console.log('Error playing enter sound:', error);
+                }
+            }
+            
+            toggleSound() {
+                this.isEnabled = !this.isEnabled;
+                console.log('Typewriter sound:', this.isEnabled ? 'enabled' : 'disabled');
+                return this.isEnabled;
+            }
+            
+            setVolume(volume) {
+                this.volume = Math.max(0, Math.min(1, volume));
+            }
+        }
+        
+        // 创建打字机音效实例
+        const typewriterSound = new TypewriterSound();
+        
+        // 在页面加载时显示音效提示
+        setTimeout(() => {
+            console.log('Typewriter sound system initialized. Use "sound" command to toggle.');
+            console.log('Audio context state:', typewriterSound.audioContext?.state);
+            console.log('Sound enabled:', typewriterSound.isEnabled);
+            
+            // 如果音频上下文被暂停，提示用户交互
+            if (typewriterSound.audioContext && typewriterSound.audioContext.state === 'suspended') {
+                console.log('⚠️ Audio system needs user interaction to activate. Click anywhere on the page to enable sound effects.');
+            }
+        }, 2000);
+        
+        // 预热音频系统 - 在用户第一次交互时
+        function warmupAudio() {
+            console.log('User interaction detected, warming up audio...');
+            if (typewriterSound && typewriterSound.audioContext) {
+                if (typewriterSound.audioContext.state === 'suspended') {
+                    typewriterSound.audioContext.resume().then(() => {
+                        console.log('Audio context resumed successfully');
+                        // 播放一个静音的音效来预热
+                        setTimeout(() => {
+                            typewriterSound.playKeySound();
+                        }, 100);
+                    }).catch(error => {
+                        console.log('Failed to resume audio context:', error);
+                    });
+                } else {
+                    console.log('Audio context already running');
+                    typewriterSound.playKeySound();
+                }
+            }
+        }
+        
+        // 监听用户交互来预热音频
+        document.addEventListener('click', warmupAudio, { once: true });
+        document.addEventListener('keydown', warmupAudio, { once: true });
+        document.addEventListener('touchstart', warmupAudio, { once: true });
+        document.addEventListener('mousedown', warmupAudio, { once: true });
+        
         // Handle cursor visibility when input is focused
         const customCursor = document.querySelector('.cursor');
 
@@ -1161,6 +1387,179 @@
 
         // Focus will be set after system messages are displayed
 
+                // 开机动画
+        function startBootAnimation() {
+            console.log('Starting boot animation...');
+            
+            const bootAnimation = document.getElementById('bootAnimation');
+            const bootProgress = document.getElementById('bootProgress');
+            const bootStatus = document.getElementById('bootStatus');
+            
+            if (!bootAnimation || !bootProgress || !bootStatus) {
+                console.error('Boot animation elements not found!');
+                // 如果开机动画元素不存在，直接显示命令行
+                document.getElementById('commandLine').style.display = 'flex';
+                document.getElementById('commandInput').focus();
+                return;
+            }
+            
+            // 显示等待按键的提示
+            bootStatus.textContent = 'Press any key to start system boot...';
+            bootStatus.classList.add('waiting');
+            // 隐藏进度条容器
+            const bootProgressContainer = bootProgress.parentElement;
+            bootProgressContainer.style.display = 'none';
+            
+            // 等待用户按键
+            function waitForKeyPress() {
+                function handleKeyPress() {
+                    console.log('Key pressed, starting boot sequence...');
+                    
+                    // 移除等待状态样式
+                    bootStatus.classList.remove('waiting');
+                    
+                    // 显示进度条并设置初始状态
+                    const bootProgressContainer = bootProgress.parentElement;
+                    bootProgressContainer.style.display = 'block';
+                    bootProgress.style.width = '0%';
+                    
+                    // 移除事件监听器
+                    document.removeEventListener('keydown', handleKeyPress);
+                    document.removeEventListener('click', handleKeyPress);
+                    
+                    // 预热音频系统
+                    if (typewriterSound && typewriterSound.audioContext) {
+                        typewriterSound.audioContext.resume().then(() => {
+                            console.log('Audio context activated by key press');
+                        }).catch(error => {
+                            console.log('Failed to activate audio context:', error);
+                        });
+                    }
+                    
+                    // 开始开机步骤
+                    startBootSequence();
+                }
+                
+                // 监听按键和点击事件
+                document.addEventListener('keydown', handleKeyPress);
+                document.addEventListener('click', handleKeyPress);
+            }
+            
+            // 开机步骤序列
+            function startBootSequence() {
+                const bootSteps = [
+                    { progress: 10, status: 'Initializing BIOS...', delay: 500 },
+                    { progress: 25, status: 'Loading kernel modules...', delay: 800 },
+                    { progress: 40, status: 'Mounting filesystems...', delay: 600 },
+                    { progress: 55, status: 'Starting network services...', delay: 700 },
+                    { progress: 70, status: 'Loading security protocols...', delay: 900 },
+                    { progress: 85, status: 'Establishing secure connection...', delay: 800 },
+                    { progress: 95, status: 'Finalizing system startup...', delay: 600 },
+                    { progress: 100, status: 'System ready!', delay: 1000 }
+                ];
+                
+                let currentStep = 0;
+                
+                function updateBootProgress() {
+                    if (currentStep < bootSteps.length) {
+                        const step = bootSteps[currentStep];
+                        bootProgress.style.width = step.progress + '%';
+                        bootStatus.textContent = step.status;
+                        console.log(`Boot step ${currentStep + 1}: ${step.status}`);
+                        
+                        // 在开机步骤中播放音效
+                        if (typewriterSound && typewriterSound.isEnabled && 
+                            typewriterSound.audioContext && typewriterSound.audioContext.state === 'running') {
+                            try {
+                                setTimeout(() => {
+                                    typewriterSound.playKeySound();
+                                }, step.delay / 2);
+                            } catch (e) {
+                                console.log('Boot step sound failed:', e);
+                            }
+                        }
+                        
+                        currentStep++;
+                        setTimeout(updateBootProgress, step.delay);
+                    } else {
+                       // 开机动画完成
+                       console.log('Boot animation completed, starting system messages...');
+                       setTimeout(() => {
+                           bootAnimation.classList.add('boot-fade-out');
+                           setTimeout(() => {
+                               bootAnimation.style.display = 'none';
+                               // 播放开机完成音效
+                               if (typewriterSound && typewriterSound.isEnabled && 
+                                   typewriterSound.audioContext && typewriterSound.audioContext.state === 'running') {
+                                   setTimeout(() => {
+                                       console.log('Playing boot completion sound...');
+                                       typewriterSound.playEnterSound();
+                                   }, 100);
+                               }
+                               // 开始正常的系统消息显示
+                               startSystemMessages();
+                           }, 1000);
+                       }, 1000);
+                    }
+                }
+                
+                updateBootProgress();
+            }
+            
+            // 开始等待按键
+            waitForKeyPress();
+        }
+        
+        // 启动系统消息显示
+        function startSystemMessages() {
+            // 配置变量
+            const DISPLAY_CONFIG = {
+                initialDelay: 200,        // 开始显示消息前的初始延迟
+                messageInterval: 150,     // 消息之间的显示间隔（更快）
+                stageDelay: 200,          // 阶段之间的延迟
+                commandLineDelay: 200     // 显示命令行前的延迟
+            };
+
+            // Initial system startup messages
+            const initialMessages = [
+                { text: '[*] System initialized successfully...', type: 'success', sound: true },
+                { text: '[*] Loading security protocols...', type: 'info', sound: true },
+                { text: '[*] Access granted to mainframe', type: 'success', sound: true },
+                { text: '[!] Warning: Unauthorized access detected', type: 'warning', sound: true },
+                { text: '[ERROR] Firewall bypass required', type: 'error', sound: true },
+                { text: '[*] Firewall bypassed successfully', type: 'success', sound: true },
+                { text: '[*] Connected to target system', type: 'info', sound: true },
+                { text: '[*] Ready for commands', type: 'success', sound: true }
+            ];
+
+            // Additional system messages
+            const systemMessages = [
+                '[*] Monitoring network traffic...',
+                '[*] Updating security protocols...',
+                '[*] Scanning for vulnerabilities...',
+                '[*] Encrypting data transmission...',
+                '[*] Bypassing firewall...',
+                '[*] Accessing secure database...'
+            ];
+
+            // Display initial system messages on startup
+            setTimeout(() => {
+                // Show initial messages sequentially
+                showMessagesSequentially(initialMessages, 0, () => {
+                    // After initial messages, show additional system messages
+                    setTimeout(() => {
+                        showMessagesSequentially(systemMessages, 0, () => {
+                            // After all messages, show command line
+                            setTimeout(() => {
+                                document.getElementById('commandLine').style.display = 'flex';
+                                document.getElementById('commandInput').focus();
+                            }, DISPLAY_CONFIG.commandLineDelay);
+                        });
+                    }, DISPLAY_CONFIG.stageDelay);
+                });
+            }, DISPLAY_CONFIG.initialDelay);
+        }
+        
         // 移动设备视口高度处理
         function setViewportHeight() {
             const vh = window.innerHeight * 0.01;
@@ -1182,6 +1581,19 @@
                 setTimeout(setViewportHeight, 100);
             }
         });
+        
+        // 启动开机动画
+        startBootAnimation();
+        
+        // 备用启动方法：如果5秒后命令行还没显示，强制显示
+        setTimeout(() => {
+            const commandLine = document.getElementById('commandLine');
+            if (commandLine && commandLine.style.display === 'none') {
+                console.log('Fallback: Forcing command line display');
+                commandLine.style.display = 'flex';
+                document.getElementById('commandInput').focus();
+            }
+        }, 10000);
     </script>
 </body>
 </html>
