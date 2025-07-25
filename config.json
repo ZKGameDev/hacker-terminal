@@ -1,0 +1,34 @@
+{
+  "commands": {
+    "help": {
+      "type": "function",
+      "description": "Show available commands and their descriptions"
+    },
+    "clear": {
+      "type": "function",
+      "description": "Clear all terminal output"
+    },
+    "status": {
+      "type": "info",
+      "description": "Display system status and connection information"
+    },
+    "scan": {
+      "type": "info",
+      "description": "Scan target system for open ports and vulnerabilities"
+    },
+    "hack": {
+      "type": "info",
+      "description": "Simulate hacking sequence and data extraction"
+    },
+    "github": {
+      "type": "redirect",
+      "url": "https://github.com/ZKGameDev",
+      "description": "Open GitHub profile in new tab",
+      "message": "Redirecting to GitHub..."
+    },
+    "exit": {
+      "type": "function",
+      "description": "Exit terminal and close command line"
+    }
+  }
+}
