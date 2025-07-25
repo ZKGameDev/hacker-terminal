@@ -395,7 +395,7 @@
 
         function typewriterEffect(element, text, type) {
             let index = 0;
-            const typeInterval = 10; // 每个字符的显示间隔
+            const typeInterval = 50; // 每个字符的显示间隔
             
             function typeChar() {
                 if (index < text.length) {
@@ -586,7 +586,7 @@
         }
 
         function typewriterEffectSequential(element, text, type, callback) {
-            const typeInterval = 10; // 每个字符的显示间隔
+            const typeInterval = 100; // 每个字符的显示间隔
             
             // Split text into base and ellipsis parts
             const baseText = text.replace('...', '');
