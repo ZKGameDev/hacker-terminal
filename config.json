@@ -26,6 +26,30 @@
       "description": "Open GitHub profile in new tab",
       "message": "Redirecting to GitHub..."
     },
+    "todo": {
+      "type": "redirect",
+      "url": "https://todo.zhangkai.life",
+      "description": "Open Todo application in new tab",
+      "message": "Redirecting to Todo..."
+    },
+    "note": {
+      "type": "redirect",
+      "url": "https://note.zhangkai.life",
+      "description": "Open Note application in new tab",
+      "message": "Redirecting to Note..."
+    },
+    "download": {
+      "type": "redirect",
+      "url": "https://download.zhangkai.life",
+      "description": "Open Download page in new tab",
+      "message": "Redirecting to Download..."
+    },
+    "photo": {
+      "type": "redirect",
+      "url": "https://photo.zhangkai.life",
+      "description": "Open Photo gallery in new tab",
+      "message": "Redirecting to Photo..."
+    },
     "exit": {
       "type": "function",
       "description": "Exit terminal and close command line"
