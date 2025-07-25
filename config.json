@@ -1,4 +1,5 @@
 {
+  "site": "zhangkai.life",
   "commands": {
     "help": {
       "type": "function",
@@ -17,6 +18,10 @@
     "sound": {
       "type": "function",
       "description": "Toggle typewriter sound effects"
+    },
+    "matrix": {
+      "type": "function",
+      "description": "Toggle Matrix rain effect"
     },
     "hack": {
       "type": "redirect",

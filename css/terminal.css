@@ -1,0 +1,454 @@
+/* 终端样式文件 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: #000;
+    color: #00ff00;
+    overflow-x: hidden;
+    /* 移动设备优化 */
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    padding-bottom: 20px;
+    /* 移动设备优化 */
+    max-height: calc(100vh - 40px);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+    animation: glow 2s ease-in-out infinite alternate;
+    /* 移动设备优化 */
+    flex-shrink: 0;
+    /* 确保header不影响控制台宽度 */
+    width: 100%;
+    max-width: 800px;
+}
+
+.title {
+    font-size: 3em;
+    text-shadow: 0 0 10px #00ff00;
+    margin-bottom: 10px;
+    /* 移动设备字体大小调整 */
+    font-size: clamp(1.5em, 5vw, 3em);
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.8;
+    /* 移动设备字体大小调整 */
+    font-size: clamp(0.8em, 3vw, 1.2em);
+}
+
+.terminal {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%;
+    min-width: 300px;
+    height: 70vh;
+    min-height: 400px;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    /* 移动设备优化 */
+    padding: 15px;
+}
+
+.terminal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #00ff00;
+}
+
+.terminal-title {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.terminal-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.terminal-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.terminal-controls span {
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+#terminalTime {
+    font-size: 16px;
+}
+
+#terminalDate {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.terminal-content {
+    height: calc(100% - 60px);
+    overflow-y: auto;
+    padding-right: 10px;
+    /* 自定义滚动条 */
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 #000;
+}
+
+.terminal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-content::-webkit-scrollbar-track {
+    background: #000;
+}
+
+.terminal-content::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 4px;
+}
+
+.terminal-content::-webkit-scrollbar-thumb:hover {
+    background: #00aa00;
+}
+
+.command-line {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+}
+
+.prompt {
+    color: #00ff00;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.cursor {
+    color: #00ff00;
+    animation: blink 1s infinite;
+    margin-right: 10px;
+}
+
+.cursor.hidden {
+    display: none;
+}
+
+.cursor.no-focus {
+    display: none;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    cursor: text !important;
+}
+
+.input-field::placeholder {
+    color: #00aa00;
+    opacity: 0.7;
+}
+
+.output {
+    margin: 5px 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.output.success {
+    color: #00ff00;
+}
+
+.output.error {
+    color: #ff0000;
+}
+
+.output.warning {
+    color: #ffff00;
+}
+
+.output.info {
+    color: #00aaff;
+}
+
+.output.prompt {
+    color: #00ff00;
+    font-weight: bold;
+}
+
+/* 开机动画样式 */
+.boot-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.boot-logo {
+    font-size: 3em;
+    font-weight: bold;
+    text-shadow: 0 0 20px #00ff00;
+    margin-bottom: 30px;
+    animation: bootGlow 2s ease-in-out infinite alternate;
+}
+
+.boot-text {
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.boot-progress {
+    width: 400px;
+    height: 4px;
+    background: #333;
+    border: 1px solid #00ff00;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+    display: none; /* 初始隐藏进度条 */
+}
+
+.boot-progress-bar {
+    height: 100%;
+    background: #00ff00;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.boot-status {
+    font-size: 12px;
+    color: #00aa00;
+    margin-top: 10px;
+}
+
+.boot-status.waiting {
+    animation: pulse 1.5s infinite;
+    color: #00ff00;
+    font-weight: bold;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px #00ff00; }
+    to { text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00; }
+}
+
+@keyframes bootGlow {
+    from { text-shadow: 0 0 20px #00ff00; }
+    to { text-shadow: 0 0 30px #00ff00, 0 0 40px #00ff00; }
+}
+
+.boot-fade-out {
+    animation: fadeOut 1s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+.status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.9);
+    border-top: 1px solid #00ff00;
+    padding: 5px 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    /* 移动设备优化 */
+    z-index: 1000;
+    /* 为iOS Safari地址栏留出空间 */
+    padding-bottom: env(safe-area-inset-bottom, 5px);
+}
+
+.scanning {
+    color: #ff0000;
+    animation: scan 2s linear infinite;
+}
+
+@keyframes scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* 中等屏幕媒体查询 */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    .terminal {
+        width: 95%;
+    }
+}
+
+/* 移动设备媒体查询 */
+@media screen and (max-width: 768px) {
+    .container {
+        padding: 10px;
+        padding-bottom: 20px;
+    }
+    
+    .header {
+        margin-bottom: 15px;
+    }
+    
+    .terminal {
+        padding: 10px;
+        width: 100%;
+        /* 移动设备响应式高度 - 增加高度比例 */
+        height: 75vh;
+        min-height: 350px;
+    }
+    
+    .terminal-header {
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+    
+    .terminal-title {
+        font-size: 12px;
+    }
+    
+    .terminal-controls span {
+        font-size: 10px;
+        color: #00ff00;
+        text-shadow: 0 0 4px #00ff00;
+        font-weight: bold;
+    }
+    
+    #terminalTime {
+        font-size: 14px;
+    }
+    
+    #terminalDate {
+        font-size: 11px;
+        opacity: 0.8;
+    }
+    
+    .title {
+        font-size: clamp(1.5em, 5vw, 2.5em);
+    }
+    
+    .subtitle {
+        font-size: clamp(0.8em, 3vw, 1.2em);
+    }
+    
+    .boot-logo {
+        font-size: 2.5em;
+    }
+    
+    .boot-progress {
+        width: 300px;
+    }
+    
+    .boot-text {
+        font-size: 12px;
+        max-width: 400px;
+    }
+    
+    .status-bar {
+        padding: 3px 10px;
+        font-size: 10px;
+    }
+}
+
+/* 超小屏幕媒体查询 */
+@media screen and (max-width: 480px) {
+    .container {
+        padding: 5px;
+        padding-bottom: 15px;
+    }
+    
+    .terminal {
+        padding: 8px;
+        height: 80vh;
+        min-height: 300px;
+    }
+    
+    .title {
+        font-size: clamp(1.2em, 4vw, 2em);
+    }
+    
+    .subtitle {
+        font-size: clamp(0.7em, 2.5vw, 1em);
+    }
+    
+    .boot-logo {
+        font-size: 2em;
+    }
+    
+    .boot-progress {
+        width: 250px;
+    }
+    
+    .boot-text {
+        font-size: 11px;
+        max-width: 300px;
+    }
+    
+    .terminal-controls span {
+        font-size: 12px;
+        color: #00ff00;
+        text-shadow: 0 0 5px #00ff00;
+        font-weight: bold;
+    }
+    
+    .status-bar {
+        padding: 2px 8px;
+        font-size: 9px;
+    }
+} 
