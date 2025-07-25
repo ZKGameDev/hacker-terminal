@@ -166,6 +166,10 @@
             animation: blink 1s infinite;
         }
 
+        .cursor.hidden {
+            display: none;
+        }
+
         .status-bar {
             position: fixed;
             bottom: 0;
@@ -213,8 +217,8 @@
             <div class="terminal-content" id="terminalContent">
                 <div class="command-line" id="commandLine" style="display: none;">
                     <span class="prompt">root@hacker-system:~#</span>
-                    <input type="text" class="input-field" id="commandInput" placeholder="Enter command..." autocomplete="off">
                     <span class="cursor">|</span>
+                    <input type="text" class="input-field" id="commandInput" placeholder="Enter command..." autocomplete="off">
                 </div>
             </div>
         </div>
@@ -302,9 +306,8 @@
                             commands[cmd] = () => {
                                 addOutput('Logging out...', 'info');
                                 addOutput('Goodbye, hacker!', 'success');
-                                setTimeout(() => {
-                                    document.getElementById('commandLine').style.display = 'none';
-                                }, 1000);
+                                // Hide command line immediately
+                                document.getElementById('commandLine').style.display = 'none';
                                 return null;
                             };
                         } else if (cmd === 'help') {
@@ -367,8 +370,14 @@
         function addOutput(text, type = 'info') {
             const output = document.createElement('div');
             output.className = `output ${type}`;
-            output.textContent = text;
             terminalContent.insertBefore(output, terminalContent.lastElementChild);
+            
+            // Typewriter effect for text with ellipsis
+            if (text.includes('...')) {
+                typewriterEffect(output, text, type);
+            } else {
+                output.textContent = text;
+            }
             
             // Limit to 200 lines
             const outputs = terminalContent.querySelectorAll('.output');
@@ -382,6 +391,21 @@
             
             // Auto scroll to bottom with multiple attempts
             scrollToBottom();
+        }
+
+        function typewriterEffect(element, text, type) {
+            let index = 0;
+            const typeInterval = 10; // 每个字符的显示间隔
+            
+            function typeChar() {
+                if (index < text.length) {
+                    element.textContent = text.substring(0, index + 1);
+                    index++;
+                    setTimeout(typeChar, typeInterval);
+                }
+            }
+            
+            typeChar();
         }
 
         function scrollToBottom() {
@@ -469,6 +493,14 @@
         setInterval(updateTime, 1000);
         updateTime();
 
+        // 配置变量
+        const DISPLAY_CONFIG = {
+            initialDelay: 200,        // 开始显示消息前的初始延迟
+            messageInterval: 150,     // 消息之间的显示间隔（更快）
+            stageDelay: 200,          // 阶段之间的延迟
+            commandLineDelay: 200     // 显示命令行前的延迟
+        };
+
         // Initial system startup messages
         const initialMessages = [
             { text: '[*] System initialized successfully...', type: 'success' },
@@ -493,30 +525,93 @@
 
         // Display initial system messages on startup
         setTimeout(() => {
-            // Show initial messages first
-            initialMessages.forEach((message, index) => {
+            // Show initial messages sequentially
+            showMessagesSequentially(initialMessages, 0, () => {
+                // After initial messages, show additional system messages
                 setTimeout(() => {
-                    addOutput(message.text, message.type);
-                }, index * 300); // Show initial messages with 300ms delay
+                    showMessagesSequentially(systemMessages, 0, () => {
+                        // After all messages, show command line
+                        setTimeout(() => {
+                            document.getElementById('commandLine').style.display = 'flex';
+                            document.getElementById('commandInput').focus();
+                        }, DISPLAY_CONFIG.commandLineDelay);
+                    });
+                }, DISPLAY_CONFIG.stageDelay);
             });
+        }, DISPLAY_CONFIG.initialDelay);
 
-            // Then show additional system messages
-            setTimeout(() => {
-                systemMessages.forEach((message, index) => {
-                    setTimeout(() => {
-                        addOutput(message, 'info');
-                        
-                        // Show command line after all system messages are displayed
-                        if (index === systemMessages.length - 1) {
-                            setTimeout(() => {
-                                document.getElementById('commandLine').style.display = 'flex';
-                                document.getElementById('commandInput').focus();
-                            }, 300); // Wait 300ms after last message
-                        }
-                    }, index * 300); // Show additional messages with 300ms delay
-                });
-            }, initialMessages.length * 300 + 300); // Wait for initial messages to complete
-        }, 300); // Start faster
+        // Function to show messages sequentially
+        function showMessagesSequentially(messages, index, callback) {
+            if (index >= messages.length) {
+                if (callback) callback();
+                return;
+            }
+
+            const message = messages[index];
+            const text = typeof message === 'string' ? message : message.text;
+            const type = typeof message === 'string' ? 'info' : message.type;
+
+            addOutputSequential(text, type, () => {
+                // Wait for message to complete, then show next
+                setTimeout(() => {
+                    showMessagesSequentially(messages, index + 1, callback);
+                }, DISPLAY_CONFIG.messageInterval);
+            });
+        }
+
+        // Sequential output function
+        function addOutputSequential(text, type, callback) {
+            const output = document.createElement('div');
+            output.className = `output ${type}`;
+            terminalContent.insertBefore(output, terminalContent.lastElementChild);
+            
+            // Typewriter effect for text with ellipsis
+            if (text.includes('...')) {
+                typewriterEffectSequential(output, text, type, callback);
+            } else {
+                output.textContent = text;
+                if (callback) callback();
+            }
+            
+            // Limit to 200 lines
+            const outputs = terminalContent.querySelectorAll('.output');
+            if (outputs.length > 200) {
+                const toRemove = outputs.length - 200;
+                for (let i = 0; i < toRemove; i++) {
+                    outputs[i].remove();
+                }
+            }
+            
+            scrollToBottom();
+        }
+
+        function typewriterEffectSequential(element, text, type, callback) {
+            const typeInterval = 10; // 每个字符的显示间隔
+            
+            // Split text into base and ellipsis parts
+            const baseText = text.replace('...', '');
+            const ellipsis = '...';
+            
+            // Show base text immediately
+            element.textContent = baseText;
+            
+            // Then type the ellipsis character by character
+            let index = 0;
+            
+            function typeEllipsis() {
+                if (index < ellipsis.length) {
+                    element.textContent = baseText + ellipsis.substring(0, index + 1);
+                    index++;
+                    setTimeout(typeEllipsis, typeInterval);
+                } else {
+                    // Ellipsis completed, call callback
+                    if (callback) callback();
+                }
+            }
+            
+            // Start typing ellipsis after a short delay
+            setTimeout(typeEllipsis, 100);
+        }
 
         // Store IP addresses
         let ipv4Address = null;
@@ -651,6 +746,17 @@
 
         // Get IP address on page load
         getUserIP();
+
+        // Handle cursor visibility when input is focused
+        const customCursor = document.querySelector('.cursor');
+
+        commandInput.addEventListener('focus', function() {
+            customCursor.classList.add('hidden');
+        });
+
+        commandInput.addEventListener('blur', function() {
+            customCursor.classList.remove('hidden');
+        });
 
         // Focus will be set after system messages are displayed
     </script>
