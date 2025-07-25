@@ -17,6 +17,9 @@
             font-family: 'Courier New', monospace;
             overflow: hidden;
             position: relative;
+            /* 为移动设备优化 */
+            height: 100vh;
+            height: -webkit-fill-available;
         }
 
         #matrix-bg {
@@ -32,36 +35,67 @@
             position: relative;
             z-index: 1;
             padding: 20px;
+            padding-bottom: 60px; /* 为状态栏留出空间 */
             height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            height: -webkit-fill-available;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            /* 确保容器不影响子元素宽度 */
+            width: 100%;
+            box-sizing: border-box;
+            /* 移动设备优化 */
+            max-height: calc(100vh - 60px);
+            max-height: calc(calc(var(--vh, 1vh) * 100) - 60px);
+            max-height: calc(-webkit-fill-available - 60px);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             animation: glow 2s ease-in-out infinite alternate;
+            /* 移动设备优化 */
+            flex-shrink: 0;
+            /* 确保header不影响控制台宽度 */
+            width: 100%;
+            max-width: 800px;
         }
 
         .header h1 {
             font-size: 3em;
             text-shadow: 0 0 10px #00ff00;
             margin-bottom: 10px;
+            /* 移动设备字体大小调整 */
+            font-size: clamp(1.5em, 5vw, 3em);
         }
 
         .header p {
             font-size: 1.2em;
             opacity: 0.8;
+            /* 移动设备字体大小调整 */
+            font-size: clamp(0.8em, 3vw, 1.2em);
         }
 
         .terminal {
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #00ff00;
             border-radius: 10px;
-            padding: 20px;
-            flex: 1;
+            padding: 15px;
+            /* 固定尺寸，不使用flex */
+            width: 800px;
+            height: calc(100vh - 200px);
+            height: calc(calc(var(--vh, 1vh) * 100) - 200px);
+            height: calc(-webkit-fill-available - 200px);
             overflow-y: auto;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            /* 确保固定大小 */
+            flex: none;
+            min-height: 300px;
+            max-height: calc(100vh - 200px);
+            max-height: calc(calc(var(--vh, 1vh) * 100) - 200px);
+            max-height: calc(-webkit-fill-available - 200px);
         }
 
         .terminal-header {
@@ -181,6 +215,10 @@
             display: flex;
             justify-content: space-between;
             font-size: 12px;
+            /* 移动设备优化 */
+            z-index: 1000;
+            /* 为iOS Safari地址栏留出空间 */
+            padding-bottom: env(safe-area-inset-bottom, 5px);
         }
 
         .scanning {
@@ -191,6 +229,80 @@
         @keyframes scan {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
+        }
+
+        /* 中等屏幕媒体查询 */
+        @media screen and (max-width: 1024px) and (min-width: 769px) {
+            .terminal {
+                width: 90vw;
+                width: 90%;
+            }
+        }
+
+        /* 移动设备媒体查询 */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 10px;
+                padding-bottom: 70px;
+            }
+            
+            .header {
+                margin-bottom: 15px;
+            }
+            
+            .terminal {
+                padding: 10px;
+                width: calc(100vw - 20px);
+                width: calc(100% - 20px);
+                height: calc(100vh - 180px);
+                height: calc(calc(var(--vh, 1vh) * 100) - 180px);
+                height: calc(-webkit-fill-available - 180px);
+                min-height: 250px;
+                max-height: calc(100vh - 180px);
+                max-height: calc(calc(var(--vh, 1vh) * 100) - 180px);
+                max-height: calc(-webkit-fill-available - 180px);
+            }
+            
+            .terminal-header {
+                margin-bottom: 15px;
+            }
+            
+            .terminal-title {
+                font-size: 1em;
+            }
+            
+            .status-bar {
+                font-size: 10px;
+                padding: 3px 10px;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .status-bar span {
+                flex: 1;
+                min-width: 0;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+        }
+
+        /* iOS Safari 特殊优化 */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                height: -webkit-fill-available;
+            }
+            
+            .container {
+                height: -webkit-fill-available;
+                max-height: calc(-webkit-fill-available - 60px);
+            }
+            
+            .terminal {
+                height: calc(-webkit-fill-available - 200px);
+                min-height: 250px;
+                max-height: calc(-webkit-fill-available - 200px);
+            }
         }
     </style>
 </head>
@@ -759,6 +871,28 @@
         });
 
         // Focus will be set after system messages are displayed
+
+        // 移动设备视口高度处理
+        function setViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        // 初始设置
+        setViewportHeight();
+
+        // 监听视口变化（iOS Safari地址栏显示/隐藏）
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setViewportHeight, 100);
+        });
+
+        // 监听页面可见性变化
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                setTimeout(setViewportHeight, 100);
+            }
+        });
     </script>
 </body>
 </html>
